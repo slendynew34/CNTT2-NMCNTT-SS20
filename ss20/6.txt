@@ -1,0 +1,89 @@
+# Ngăn chặn rò rỉ thông tin bí mật trên GitHub
+## Bản báo cáo đánh giá rủi ro nếu thiếu tệp `.gitignore` trong dự án
+
+Trong phát triển phần mềm, tệp `.gitignore` đóng vai trò là "hàng rào" đầu tiên ngăn chặn các tệp tin nhạy cảm, tệp cấu hình môi trường cục bộ (`.env`), hoặc các thư mục mã nguồn biên dịch (`node_modules/`,  `build/`) bị đưa lên hệ thống quản lý mã nguồn công khai (_Public Repository_). Việc thiếu tệp `.gitignore` hoặc cấu hình thiếu sót dẫn đến các rủi ro cực kỳ nghiêm trọng:
+
+-   **Rò rỉ thông tin xác thực (_Credential Leaks_):** Các khóa API (_API Keys_), thông tin kết nối cơ sở dữ liệu (_Database URI_), mật khẩu quản trị, hoặc khóa bí mật JWT bị hardcode hoặc lưu trong tệp `.env` sẽ bị đẩy công khai lên GitHub. Các bot tự động của kẻ tấn công thường xuyên quét các repository public để thu thập thông tin này, dẫn đến việc tài khoản dịch vụ đám mây bị chiếm đoạt hoặc phát sinh chi phí khổng lồ.
+    
+-   **Nguy cơ lộ dữ liệu cá nhân hoặc nội bộ doanh nghiệp:** Các tệp nhật ký lỗi (_log files_), cơ sở dữ liệu nội bộ cục bộ (`sqlite.db`), hoặc các tệp cấu hình riêng của IDE (như `.vscode/`,  `.idea/`) có thể chứa đường dẫn hệ thống, tên tài khoản máy tính của lập trình viên, làm lộ cấu trúc hạ tầng nội bộ.
+    
+-   **Phình to dung lượng Repository:** Việc đưa các thư mục chứa thư viện phụ thuộc nặng như `node_modules/` hoặc các tệp nhị phân biên dịch vào Git sẽ làm tăng vọt dung lượng lưu trữ của repository, khiến quá trình `clone`,  `pull`, hay `push` trở nên chậm chạp và kém hiệu quả.
+## Cấu trúc Repository mẫu an toàn
+```
+Dưới đây là cấu trúc tệp và thư mục mẫu cho dự án thương mại điện tử đảm bảo tính an toàn bảo mật:
+B26DTCN091_IT108_Session19_Ex06/
+│
+├── .env.example            # Mẫu cấu hình môi trường (Không chứa dữ liệu thật)
+├── .gitignore              # Tệp cấu hình loại trừ các tệp nhạy cảm
+├── README.md               # Tài liệu mô tả dự án và hướng dẫn thiết lập bảo mật
+├── package.json            # Khai báo thư viện phụ thuộc của dự án
+└── src/
+    ├── app.js              # Mã nguồn chính của ứng dụng
+    └── config.js           # Tệp đọc biến môi trường từ process.env
+ ```
+ ## Nội dung chi tiết các tệp cấu hình trọng điểm
+
+### A. Tệp `.gitignore` chuẩn cho dự án
+```
+Tạo tệp `.gitignore` ở thư mục gốc của repository với nội dung sau để vô hiệu hóa việc theo dõi các tệp nhạy cảm:
+# --- Môi trường và Bảo mật ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Thư viện phụ thuộc ---
+node_modules/
+jspm_packages/
+
+# --- Tệp cấu hình IDE và Trình soạn thảo ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Nhật ký hệ thống và Biên dịch ---
+logs/
+*.log
+npm-debug.log*
+dist/
+build/
+```
+### B. Tệp `.env.example` chuyên nghiệp cho các môi trường
+```
+Tạo tệp `.env.example` (được phép đưa lên GitHub Public) để cung cấp khung mẫu cho các thành viên trong team cấu hình môi trường riêng của họ:
+# ==========================================
+# FILE MẪU CẤU HÌNH MÔI TRƯỜNG (.env.example)
+# Hướng dẫn: Sao chép tệp này thành .env và điền giá trị thực tế của bạn.
+# TUYỆT ĐỐI KHÔNG đưa tệp .env thật lên GitHub.
+# ==========================================
+
+# Môi trường hệ thống (development, staging, production)
+NODE_ENV=development
+PORT=3000
+
+# Cấu hình Cơ sở dữ liệu
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=ecommerce_dev
+DB_USER=root
+DB_PASSWORD=change_me_to_secure_password
+
+# API Keys bên thứ ba (Ví dụ: Cổng thanh toán, dịch vụ gửi mail)
+PAYMENT_API_KEY=your_sandbox_api_key_here
+MAIL_SERVICE_API=your_mailgun_or_sendgrid_key_here
+```
+## Hướng dẫn thiết lập Pre-push Checklist & Bảo mật Team
+
+Để đảm bảo không có thành viên nào vô tình lọt lưới đẩy mã nguồn chứa khóa bí mật lên GitHub, team cần thực hiện nghiêm ngặt quy trình sau:
+
+1.  **Kiểm tra thủ công trước khi Push (Pre-push Checklist):**
+    
+    -   Rà soát toàn bộ mã nguồn để đảm bảo không có chuỗi khóa API nào bị viết cứng (_hardcode_) trực tiếp trong tệp mã nguồn.
+        
+    -   Sử dụng lệnh `git status` để kiểm tra kỹ danh sách các tệp sắp được đưa lên, đảm bảo tệp `.env` không xuất hiện trong danh sách.
+        
+2.  **Kích hoạt xác thực 2 bước (2FA) bắt buộc:**
+    
+    -   Trưởng nhóm hoặc quản trị viên tổ chức trên GitHub cần truy cập vào mục **Settings**  $\rightarrow$  **Security** của Organization/Repository để cấu hình bắt buộc toàn bộ thành viên tham gia phải bật xác thực 2 lớp (2FA) trước khi được cấp quyền `push` mã nguồn.

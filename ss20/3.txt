@@ -1,0 +1,47 @@
+# Quản lý rủi ro khi mất thiết bị xác thực
+## Mô hình Phân tích IPO (Input - Process - Output)
+
+### **Input (Đầu vào - Dữ liệu khởi tạo)**
+
+-   **Mã dự phòng (Backup Codes / Recovery Codes):** Tập hợp các mã dùng một lần (one-time use codes) đã được hệ thống (AWS) cấp và lưu trữ ngoại tuyến an toàn (ví dụ: in ra giấy cất ở két sắt hoặc lưu trong Bitwarden) ngay thời điểm thiết lập 2FA ban đầu.
+    
+-   **Tài khoản định danh:** Username/Email đăng ký tài khoản AWS của Lead Developer.
+    
+
+### **Process (Quá trình xử lý sự cố)**
+
+Quy trình khôi phục quyền truy cập được thực hiện tuần tự qua 3 bước:
+
+1.  **Xác thực danh tính và Khôi phục (Authentication & Recovery):**
+    
+    -   Truy cập trang đăng nhập AWS. Khi hệ thống yêu cầu mã Google Authenticator (Google Auth) mà thiết bị đã mất, chọn tùy chọn đăng nhập thay thế bằng **"Use a backup code"**.
+        
+    -   Nhập một trong các mã dự phòng chưa từng sử dụng để vượt qua lớp xác thực 2FA bị mất.
+        
+2.  **Hủy bỏ cấu hình mã cũ (Revoke Old Auth):**
+    
+    -   Ngay sau khi đăng nhập thành công vào trang quản trị AWS, truy cập ngay vào phần thiết lập bảo mật (_Security Credentials_).
+        
+    -   Vô hiệu hóa/Xóa bỏ hoàn toàn liên kết Google Authenticator của chiếc điện thoại đã mất để ngăn chặn bất kỳ ai nhặt được thiết bị cố gắng sử dụng ứng dụng xác thực cũ.
+        
+3.  **Cấp mã mới và Tái thiết lập bảo mật (Provision New Auth):**
+    
+    -   Quét mã QR mới để liên kết ứng dụng Google Authenticator trên thiết bị thay thế (điện thoại mới hoặc máy phụ).
+        
+    -   Tạo một bộ **Backup Codes mới** và tiến hành lưu trữ an toàn thay thế cho bộ cũ đã mất hiệu lực.
+        
+
+### **Output (Đầu ra - Trạng thái hệ thống)**
+
+-   **Hệ thống an toàn:** Tài khoản AWS đã được khôi phục quyền kiểm soát, thiết bị bị mất đã bị cô lập hoàn toàn khỏi hệ thống, vòng đời mã dự phòng cũ bị hủy bỏ và một hàng rào bảo mật mới với thiết bị/mã dự phòng mới được thiết lập thành công.
+## Giải thích tại sao không được lưu Backup Codes dưới dạng ảnh trong thư viện điện thoại?
+
+Việc lưu trữ Backup Codes dưới dạng **ảnh chụp màn hình (Screenshot)** hoặc file ảnh thông thường trong thư viện ảnh của điện thoại tiềm ẩn rủi ro cực kỳ cao vì những lý do sau:
+
+-   **Tự động đồng bộ lên Đám mây (Cloud Sync / Backup):** Các thư viện ảnh hiện đại (như Google Photos, iCloud Photos, OneDrive) thường bật tính năng tự động sao lưu ảnh lên đám mây theo mặc định. Nếu ảnh chứa Backup Codes bị đẩy lên cloud, tài khoản đám mây của bạn nếu bị xâm phạm sẽ đồng nghĩa với việc lộ toàn bộ mã khôi phục hệ thống.
+    
+-   **Nguy cơ từ các ứng dụng độc hại (Malware / Spyware):** Khi người dùng vô tình cấp quyền truy cập toàn bộ ảnh (_Full Media Access_) cho các ứng dụng không rõ nguồn gốc hoặc dính mã độc trên điện thoại, các tiến trình ngầm có thể quét toàn bộ thư viện ảnh, tìm kiếm các chuỗi ký tự dạng mã xác thực để đánh cắp về máy chủ của kẻ tấn công.
+    
+-   **Thiếu lớp bảo vệ mã hóa chuyên dụng:** Thư viện ảnh mở ra là xem được ngay, không yêu cầu mật khẩu hay mã PIN riêng biệt (trừ khi dùng Thư mục ẩn/Locked Folder). Ngược lại, nếu lưu trong trình quản lý mật khẩu (như Bitwarden), dữ liệu được mã hóa đầu cuối (End-to-End Encryption) và bắt buộc phải có Master Password hoặc sinh trắc học mới giải mã được.
+    
+-   **Không thể kiểm soát khi thiết bị bị chiếm đoạt:** Giống như kịch bản mất điện thoại, nếu kẻ xấu mở khóa được máy (hoặc nhặt được điện thoại đang mở), album ảnh là nơi đầu tiên chúng kiểm tra để tìm thông tin nhạy cảm, số thẻ ngân hàng hoặc các mã khôi phục tài khoản.

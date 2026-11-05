@@ -1,0 +1,32 @@
+# Xử lý cảnh báo đăng nhập giả mạo GitHub
+1. Chỉ ra ký tự lạ trong URL trên và giải thích tại sao nó có thể đánh lừa người dùng.
+Trong URL giả mạo được cung cấp (`[https://githúb.com/login](https://githúb.com/login)`), ký tự bất thường nằm ở chữ cái **`ú`**.
+
+-   **Bản chất kỹ thuật:** Ký tự này không phải là chữ `u` Latin tiêu chuẩn trong bảng chữ cái tiếng Anh mà là chữ **`ú`** (ký tự Latin có dấu sắc / U with acute, mã Unicode:  `U+00FA`).
+    
+-   **Tại sao nó đánh lừa được người dùng (Homograph Attack / IDN Homograph Attack):**
+    
+    -   **Độ tương đồng trực quan:** Về mặt hiển thị trên giao diện người dùng, ký tự `ú` có hình dáng gần như trùng khớp với chữ `u` thông thường, chỉ khác biệt một dấu phụ nhỏ ở phía trên.
+        
+    -   **Tâm lý người dùng:** Người dùng thường có thói quen đọc lướt qua các đường dẫn quen thuộc (như GitHub) thay vì soi xét từng ký tự kỹ lưỡng. Kẻ gian lợi dụng điểm mù thị giác này để dựng lên một tên miền hoàn toàn khác (ví dụ:  `githúb.com` thực chất là một tên miền đã được đăng ký bằng ký tự Unicode thay thế), hướng người dùng đến giao diện đăng nhập giả mạo nhằm đánh cắp thông tin tài khoản và mật khẩu.
+2. Đề xuất quy trình kiểm tra URL nhanh bằng mắt thường và công cụ hỗ trợ trước khi nhập Master Password.
+### Bước 1: Kiểm tra nhanh bằng mắt thường
+
+-   **Quan sát phần Tên miền chính (Domain Name):** Chỉ tập trung nhìn vào phần nằm ngay trước dấu `/` đầu tiên (tính từ bên trái sau giao thức `https://`). Tên miền chính xác của GitHub là `github.com`. Mọi biến thể dù có thêm bớt dấu, thêm ký tự lạ (như `githuub`,  `git-hub`,  `githúb`) đều là giả mạo.
+    
+-   **Kiểm tra giao thức an toàn:** Đảm bảo URL bắt đầu bằng tiền tố `https://` và có biểu tượng ổ khóa bảo mật tại thanh địa chỉ.
+    
+-   **Cảnh giác với các lỗi đánh máy cố ý (Typosquatting):** Kẻ tấn công thường thay thế các ký tự dễ nhầm lẫn như chữ `l` (L thường) thành `I` (i hoa), số `0` thay cho chữ `o`, hoặc sử dụng ký tự Unicode (như phân tích ở trên).
+    
+
+### Bước 2: Sử dụng công cụ hỗ trợ xác thực
+
+-   **Sử dụng Trình quản lý mật khẩu (Password Manager - như Bitwarden):**
+    
+    -   Trình quản lý mật khẩu an toàn chỉ tự động điền (Auto-fill) thông tin đăng nhập khi tên miền của trang web khớp chính xác với lưu trữ gốc.
+        
+    -   Nếu bạn truy cập vào một URL giả mạo (dù giao diện giống hệt), trình quản lý mật khẩu sẽ **không tự động điền**, đây là dấu hiệu cảnh báo tức thì rằng bạn đang đứng trước một trang web lừa đảo (Phishing).
+        
+-   **Kiểm tra chứng chỉ SSL/TLS:** Nhấp vào biểu tượng ổ khóa trên thanh địa chỉ trình duyệt $\rightarrow$ Chọn _Connection is secure_ (Kết nối an toàn) $\rightarrow$ Xem chi tiết chứng chỉ (_Certificate_) để xác minh thông tin nhà phát hành chính thức (Certificate Authority) có đúng là thuộc về công ty sở hữu dịch vụ hay không.
+    
+-   **Sử dụng công cụ quét bảo mật:** Trong trường hợp nghi ngờ mã nguồn hoặc liên kết lạ, có thể sử dụng các công cụ kiểm tra uy tín như **VirusTotal** để phân tích độ an toàn của URL trước khi nhấp vào.
